@@ -1,0 +1,30 @@
+info:
+  name: chruned
+  type: http
+
+http:
+  method: POST
+  url: http://127.0.0.1:8000/predict
+  body:
+    type: json
+    data: |-
+      {
+          "CreditScore": 600.0,
+          "Age": 35.0,
+          "Tenure": 5.0,
+          "Balance": 50000.0,
+          "NumOfProducts": 2.0,
+          "HasCrCard": 1.0,
+          "IsActiveMember": 1.0,
+          "EstimatedSalary": 80000.0,
+          "Geography_Germany": 0.0,
+          "Geography_Spain": 0.0,
+          "Gender_Male": 1.0
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
