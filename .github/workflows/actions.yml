@@ -51,6 +51,15 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Create ECR repository if not exists
+        run: |
+          aws ecr describe-repositories \
+            --repository-names churn-prediction-12 \
+            --region ${{ secrets.AWS_REGION }} || \
+          aws ecr create-repository \
+            --repository-name churn-prediction-12 \
+            --region ${{ secrets.AWS_REGION }}
+
       - name: Build, tag, and push image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -76,14 +85,17 @@ jobs:
           port: 443
           script: |
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-            docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-            
-            docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/churn-prediction-12:latest
-            
+            docker login --username AWS --password-stdin \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+            docker pull \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/churn-prediction-12:latest
+
             docker stop churn-api || true
             docker rm churn-api || true
-            
+
             docker run -d \
               --name churn-api \
               -p 8000:8000 \
+              --restart always \
               ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/churn-prediction-12:latest
